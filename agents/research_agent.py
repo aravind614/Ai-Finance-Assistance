@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 import wikipedia
 
-from services.llm import get_llm
+from services.llm import get_llm, extract_text_content
 from tools.web_search import web_search
 from tools.web_fetch import fetch_webpage, fetch_links, fetch_pdf
 from services.financial_calculations import calculate_growth
@@ -185,4 +185,5 @@ Provide a comprehensive, professional research summary covering these specific s
 """
     llm = get_llm()
     response = llm.invoke(prompt)
-    return response.content
+    return extract_text_content(response.content)
+

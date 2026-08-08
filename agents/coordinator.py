@@ -1,6 +1,6 @@
 import re
 from langchain_core.runnables import RunnableBranch, RunnableLambda
-from services.llm import get_llm
+from services.llm import get_llm, extract_text_content
 from models.schemas import RouteDecision
 from agents.news_agent import get_news
 from agents.research_agent import research_company_fundamentals, research_company
@@ -78,7 +78,7 @@ INSTRUCTIONS:
 3. State the name of the source document referenced.
 """
             llm = get_llm()
-            result = llm.invoke(prompt).content
+            result = extract_text_content(llm.invoke(prompt).content)
             return {"route": "PDF RAG Agent (Uploaded Report)", "output": result, "pdf_chunks": rag_chunks}
 
     # Route-based Execution
@@ -91,7 +91,7 @@ INSTRUCTIONS:
             context = "\n\n".join([f"Source ({c['metadata'].get('source')}): {c['page_content']}" for c in chunks])
             prompt = f"Answer the user's question using ONLY the following uploaded report excerpts:\n\n{context}\n\nQuestion: {query}"
             llm = get_llm()
-            result = llm.invoke(prompt).content
+            result = extract_text_content(llm.invoke(prompt).content)
             return {"route": "PDF RAG Agent", "output": result, "pdf_chunks": chunks}
 
     elif route == "news":
@@ -101,7 +101,7 @@ INSTRUCTIONS:
     elif route == "compare":
         prompt = f"Extract all company names mentioned in this query as a comma-separated list. Query: '{query}'"
         llm = get_llm()
-        raw_companies = llm.invoke(prompt).content.strip()
+        raw_companies = extract_text_content(llm.invoke(prompt).content).strip()
         companies = [c.strip() for c in raw_companies.split(",") if c.strip()]
         if not companies:
             companies = ["Google", "Microsoft"]
@@ -138,7 +138,7 @@ Generate a comprehensive, formal AI Investment Research Report based on these up
 
 FORMAT: Include Executive Summary, Financial Performance (Revenue, Profit, EPS, Margins), Major Segments, Growth Drivers, Risks, and Investment Recommendation.
 """
-                report_text = llm.invoke(prompt).content
+                report_text = extract_text_content(llm.invoke(prompt).content)
 
         if not report_text:
             # Fallback to research generator if no uploaded RAG docs exist
@@ -148,6 +148,8 @@ FORMAT: Include Executive Summary, Financial Performance (Revenue, Profit, EPS, 
             news_text = get_news(f"{target_company} stock earnings")
             rep_obj = generate_investment_report(target_company, res_text, news_text, "", profile_summary)
             report_text = format_report_as_markdown(rep_obj)
+
+        report_text = extract_text_content(report_text)
 
         result_msg = send_email_report(
             recipient_email=recipient,
@@ -170,7 +172,7 @@ Format output strictly as clean Python code block starting with ```python and en
 Print the final result using print().
 """
         llm = get_llm()
-        code_resp = llm.invoke(prompt).content
+        code_resp = extract_text_content(llm.invoke(prompt).content)
         code_match = re.search(r'```python(.*?)```', code_resp, re.DOTALL)
         code = code_match.group(1).strip() if code_match else code_resp
         calc_out = run_calculation_code(code)
@@ -179,7 +181,7 @@ Print the final result using print().
     elif route == "report":
         prompt = f"Extract the target company name from query: '{query}'"
         llm = get_llm()
-        company = llm.invoke(prompt).content.strip() or "NVIDIA"
+        company = extract_text_content(llm.invoke(prompt).content).strip() or "NVIDIA"
 
         res_text = research_company_fundamentals(company)
         news_text = get_news(f"{company} news")
@@ -193,10 +195,11 @@ Print the final result using print().
     else:
         prompt_company = f"Extract any single company name from query: '{query}'. If none, respond NONE."
         llm = get_llm()
-        comp = llm.invoke(prompt_company).content.strip()
+        comp = extract_text_content(llm.invoke(prompt_company).content).strip()
         if comp and comp != "NONE":
             res = research_company_fundamentals(comp)
             return {"route": "Company Research Agent", "output": res}
         else:
-            ans = llm.invoke(f"You are an AI Financial Research Assistant. Answer professionally:\n\n{query}").content
+            ans = extract_text_content(llm.invoke(f"You are an AI Financial Research Assistant. Answer professionally:\n\n{query}").content)
             return {"route": "Conversational AI Assistant", "output": ans}
+

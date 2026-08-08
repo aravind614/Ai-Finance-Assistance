@@ -2,12 +2,14 @@ import streamlit as st
 import io
 
 from agents.coordinator import execute_coordinator
+from services.llm import extract_text_content
 from services.rag_service import (
     extract_pdf_text_from_bytes,
     ingest_document,
     get_uploaded_documents,
     clear_knowledge_base
 )
+
 from services.db import (
     save_chat_message,
     get_chat_history,
@@ -181,7 +183,7 @@ if final_input:
         with st.spinner("AI Agents executing workflow..."):
             response_data = execute_coordinator(final_input, st.session_state.session_id)
             route_used = response_data.get("route", "Agent")
-            output_text = response_data.get("output", "")
+            output_text = extract_text_content(response_data.get("output", ""))
 
             st.caption(f"⚡ **Routed via:** `{route_used}`")
             st.markdown(output_text)

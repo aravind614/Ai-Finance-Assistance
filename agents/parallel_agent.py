@@ -1,7 +1,7 @@
 from langchain_core.runnables import RunnableParallel, RunnableLambda
 from agents.research_agent import research_company_fundamentals
 from agents.news_agent import get_news
-from services.llm import get_llm
+from services.llm import get_llm, extract_text_content
 
 
 def compare_companies(companies: list[str]) -> str:
@@ -56,4 +56,5 @@ Make the output clear, professional, and structured in Markdown format.
 
     llm = get_llm()
     response = llm.invoke(prompt)
-    return response.content
+    return extract_text_content(response.content)
+

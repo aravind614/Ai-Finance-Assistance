@@ -1,7 +1,9 @@
-from services.llm import get_llm
+from services.llm import get_llm, extract_text_content
 from tools.web_search import web_search
 
+
 def get_news(query: str) -> str:
+
     """
     Search for latest financial news and return a summary.
     """
