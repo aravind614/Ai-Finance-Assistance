@@ -1,5 +1,6 @@
 import os
 import base64
+from typing import Any
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -12,7 +13,7 @@ from googleapiclient.discovery import build
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 
-def get_gmail_service():
+def get_gmail_service() -> Any:
     """
     Authenticate and return the Gmail API service.
     """
@@ -34,12 +35,12 @@ def get_gmail_service():
             
     return build("gmail", "v1", credentials=creds)
 
-def send_email(recipient: str, subject: str, body: str, pdf_bytes: bytes = None) -> tuple[bool, str]:
+def send_email(recipient: str, subject: str, body: str, pdf_bytes: bytes | None = None) -> tuple[bool, str]:
     """
     Sends an email using the Gmail API.
     """
     try:
-        service = get_gmail_service()
+        service: Any = get_gmail_service()
         
         message = MIMEMultipart()
         message["to"] = recipient

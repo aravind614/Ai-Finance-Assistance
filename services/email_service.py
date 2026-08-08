@@ -2,7 +2,7 @@ import os
 import re
 from services.gmail_service import send_email
 
-def send_financial_report(recipient_email: str, subject: str, report_content: str, pdf_bytes: bytes = None) -> tuple[bool, str]:
+def send_financial_report(recipient_email: str, subject: str, report_content: str, pdf_bytes: bytes | None = None) -> tuple[bool, str]:
     """
     Constructs and sends an email using Gmail API.
     """

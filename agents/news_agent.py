@@ -30,4 +30,4 @@ Tasks:
 """
     llm = get_llm()
     response = llm.invoke(prompt)
-    return response.content
+    return extract_text_content(response.content)

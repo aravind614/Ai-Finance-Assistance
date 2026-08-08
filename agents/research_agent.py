@@ -118,7 +118,13 @@ Return:
 
     llm = get_llm()
     structured_llm = llm.with_structured_output(FinancialResearch)
-    research = structured_llm.invoke(prompt)
+    res = structured_llm.invoke(prompt)
+    if isinstance(res, FinancialResearch):
+        research = res
+    elif isinstance(res, dict):
+        research = FinancialResearch.model_validate(res)
+    else:
+        research = FinancialResearch.model_validate(res)
 
     # 7. Calculate growth using Python
     research.revenue_growth = calculate_growth(

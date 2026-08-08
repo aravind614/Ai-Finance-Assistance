@@ -1,6 +1,6 @@
 from services.email_service import send_financial_report
 
-def send_email_report(recipient_email: str, subject: str = "AI Investment Research Report", report_content: str = "", pdf_bytes: bytes = None) -> str:
+def send_email_report(recipient_email: str, subject: str = "AI Investment Research Report", report_content: str = "", pdf_bytes: bytes | None = None) -> str:
     """
     Simpler email agent wrapper.
     """

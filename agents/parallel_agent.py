@@ -13,12 +13,15 @@ def compare_companies(companies: list[str]) -> str:
         return "No companies provided for comparison."
 
     # Build a parallel runnable for each company
+    def create_task(comp: str) -> RunnableLambda:
+        return RunnableLambda(lambda _: research_company_fundamentals(comp))
+
     parallel_tasks = {
-        company: RunnableLambda(lambda _c=company: research_company_fundamentals(_c))
+        company: create_task(company)
         for company in companies
     }
 
-    parallel_runnable = RunnableParallel(**parallel_tasks)
+    parallel_runnable = RunnableParallel(parallel_tasks)
     results = parallel_runnable.invoke({})
 
     # Build combined context for LLM

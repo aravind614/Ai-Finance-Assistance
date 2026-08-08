@@ -42,9 +42,15 @@ Query: "{query}"
 """
     try:
         decision = structured_llm.invoke(prompt)
-        return decision.route
+        if isinstance(decision, RouteDecision):
+            return decision.route
+        elif isinstance(decision, dict):
+            return str(decision.get("route", "pdf_rag" if has_docs else "general"))
+        elif hasattr(decision, "route"):
+            return str(getattr(decision, "route"))
     except Exception:
         return "pdf_rag" if has_docs else "general"
+    return "pdf_rag" if has_docs else "general"
 
 
 def execute_coordinator(query: str, session_id: str = "default") -> dict:

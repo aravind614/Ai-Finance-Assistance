@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from services.llm import get_llm
 from models.schemas import InvestmentReport
 
@@ -48,7 +49,13 @@ Base all analysis strictly on the provided research data. Be objective, precise,
     llm = get_llm()
     structured_llm = llm.with_structured_output(InvestmentReport)
     report = structured_llm.invoke(prompt)
-    return report
+    if isinstance(report, InvestmentReport):
+        return report
+    if isinstance(report, dict):
+        return InvestmentReport.model_validate(report)
+    if isinstance(report, BaseModel):
+        return InvestmentReport.model_validate(report.model_dump())
+    raise ValueError(f"Failed to generate valid InvestmentReport: {report}")
 
 
 def format_report_as_markdown(report: InvestmentReport) -> str:
