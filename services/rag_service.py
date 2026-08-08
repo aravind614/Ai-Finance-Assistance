@@ -1,15 +1,52 @@
 import os
 import io
+import math
+import re
 import pypdf
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.embeddings import Embeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+class LightweightEmbeddings(Embeddings):
+    """
+    Lightweight, fast pure-Python embedding model.
+    Generates 384-dimensional normalized feature vectors for semantic matching
+    without requiring PyTorch, TensorFlow, Transformers, or heavy ML frameworks.
+    """
+    def __init__(self, dim: int = 384):
+        self.dim = dim
+
+    def _text_to_vector(self, text: str) -> list[float]:
+        text = text.lower()
+        words = re.findall(r'\w+', text)
+        vec = [0.0] * self.dim
+        if not words:
+            return vec
+
+        for word in words:
+            h = hash(word) % self.dim
+            vec[h] += 1.0
+            for i in range(len(word) - 2):
+                ngram = word[i:i+3]
+                h_ng = hash(ngram) % self.dim
+                vec[h_ng] += 0.5
+
+        norm = math.sqrt(sum(v * v for v in vec))
+        if norm > 0:
+            vec = [v / norm for v in vec]
+        return vec
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return [self._text_to_vector(t) for t in texts]
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._text_to_vector(text)
 
 CHROMA_DIR = "./chroma_db"
 COLLECTION_NAME = "financial_reports"
 
 # Initialize embeddings model
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = LightweightEmbeddings()
 
 
 def get_vectorstore():
@@ -114,11 +151,12 @@ def get_uploaded_documents() -> list[str]:
             return []
 
         data = db._collection.get(include=["metadatas"])
-        if not data or not data.get("metadatas"):
+        if not data:
             return []
 
+        metadatas = data.get("metadatas") or []
         sources = set()
-        for meta in data["metadatas"]:
+        for meta in metadatas:
             if meta and "source" in meta:
                 sources.add(meta["source"])
         return sorted(list(sources))
