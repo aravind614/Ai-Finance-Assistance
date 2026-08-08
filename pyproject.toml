@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "langchain>=1.3.14",
+]
 
 [project.scripts]
 financial-research-assistant = "financial_research_assistant:main"
@@ -12,3 +14,7 @@ financial-research-assistant = "financial_research_assistant:main"
 [build-system]
 requires = ["uv_build>=0.12.1,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.pyright]
+extraPaths = ["."]
+
