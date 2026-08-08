@@ -1,0 +1,24 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Database and Vector Store
+memory.db
+chroma_db/
+
+# Virtual environments
+.venv
+
+# Google OAuth Credentials and Tokens
+credentials.json
+token.json
+
